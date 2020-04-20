@@ -1,14 +1,14 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-const db = require("./db/db.json")
+let db = require("./db/db.json")
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-let counter = 0;
-
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({
+    extended: true
+}));
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -24,24 +24,24 @@ app.get("/api/notes", (req, res) => {
 });
 
 app.post("/api/notes", (req, res) => {
-    req.body.id = counter;
-    console.log(__dirname);
+    req.body.id = db.length;
     db.push(req.body);
+    db = renumberId(db);
     fs.writeFileSync(__dirname + "/db/db.json", JSON.stringify(db));
     res.json(db);
-    counter++;
 });
 
-app.get("/public/assets/css/styles.css", function(req, res) {
-    res.sendFile(path.resolve('.')+"/public/assets/css/styles.css");
+app.get("/public/assets/css/styles.css", function (req, res) {
+    res.sendFile(path.resolve('.') + "/public/assets/css/styles.css");
 });
 
-app.get("/public/assets/js/index.js", function(req, res) {
-    res.sendFile(path.resolve('.')+"/public/assets/js/index.js");
+app.get("/public/assets/js/index.js", function (req, res) {
+    res.sendFile(path.resolve('.') + "/public/assets/js/index.js");
 });
 
 app.delete("/api/notes/:id", (req, res) => {
     db.splice(req.params.id, 1);
+    db = renumberId(db);
     fs.writeFileSync(__dirname + "/db/db.json", JSON.stringify(db));
     res.json(db);
 })
@@ -49,3 +49,10 @@ app.delete("/api/notes/:id", (req, res) => {
 app.listen(port, () => {
     console.log(`Server listening on PORT: ${port}`);
 });
+
+function renumberId(db) {
+    for (var i = 0; i < db.length; i++) {
+        db[i].id = i;
+    }
+    return db;
+};
